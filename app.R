@@ -1,6 +1,8 @@
 # This app uses data from https://cs.uwaterloo.ca/~s255khan/oscars.html
 
 library(shiny)
+library(dplyr) #library for simplifying dataframe manipulation
+library(rCharts) #add interactive charts
 picture_data<-read.csv('pictures.csv')
 
 # Define UI for application 
@@ -21,8 +23,11 @@ ui <- fluidPage(
       ),
       
       # Plot of the filtered data
+      #mainPanel(
+         #plotOutput("bestPicturePlot")
+      #)
       mainPanel(
-         plotOutput("bestPicturePlot")
+        showOutput("bestPicturePlot", "polycharts")
       )
    )
 )
@@ -36,11 +41,15 @@ server <- function(input, output) {
       filter(year >= input$yearInput[1],
              year <= input$yearInput[2])
   })
-   
-   output$bestPicturePlot <- renderPlot({
-     plot(filtered_picture_data()$year, filtered_picture_data()$rating, main="Best Picture Ratings by Year", 
-          xlab="Year ", ylab="Rating ", pch=19)
+  
+   output$bestPicturePlot <- renderChart({
+     p1 <- rPlot(rating~year, data = filtered_picture_data(),
+                 type = 'point',
+                 tooltip = "#!function(movie){ return 'Title: ' + movie.name}!#")
+     p1$addParams(dom = 'bestPicturePlot')
+     return(p1)
    })
+   
 }
 
 # Run the application 
